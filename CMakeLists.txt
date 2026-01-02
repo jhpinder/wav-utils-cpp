@@ -12,6 +12,16 @@ target_include_directories(wav INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
+# Format target
+file (GLOB_RECURSE ALL_SOURCE_FILES
+    "include/*.hpp"
+)
+add_custom_target(format
+    COMMAND clang-format -i ${ALL_SOURCE_FILES}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running clang-format on source files"
+)
+
 # Optional: Build examples
 option(BUILD_EXAMPLES "Build example programs" ON)
 
