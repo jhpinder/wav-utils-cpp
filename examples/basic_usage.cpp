@@ -6,8 +6,8 @@
  * a WAV file and read its metadata.
  */
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <wav/Reader.hpp>
 
 /**
@@ -21,26 +21,22 @@
  * This allows the example to work when run from different directories
  * (e.g., debug from build/examples/ or launch from repo root).
  */
-static std::string findDataFile(const std::string &relative_path)
-{
+static std::string findDataFile(const std::string& relative_path) {
   namespace fs = std::filesystem;
 
   // Try 1: Direct path (e.g., from build/examples/basic_usage)
-  if (fs::exists(relative_path))
-  {
+  if (fs::exists(relative_path)) {
     return relative_path;
   }
 
   // Try 2: With examples/ prefix (e.g., from repo root)
   std::string with_examples = "examples/" + relative_path;
-  if (fs::exists(with_examples))
-  {
+  if (fs::exists(with_examples)) {
     return with_examples;
   }
 
   // Try 3: Assume we're in examples/ already (shouldn't reach here, but defensive)
-  if (fs::exists(relative_path))
-  {
+  if (fs::exists(relative_path)) {
     return relative_path;
   }
 
@@ -48,25 +44,21 @@ static std::string findDataFile(const std::string &relative_path)
   return relative_path;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
   std::cout << "WAV Utils - Basic Usage Example\n";
   std::cout << "================================\n\n";
   std::string filename;
   // The wav::Reader class provides a simple interface for reading WAV files
   // It's a header-only library, so no linking is required!
 
-  if (argc < 2)
-  {
+  if (argc < 2) {
     std::cout << "Usage: " << argv[0] << " <wav_file>\n";
     std::cout << "\nThis example demonstrates how to:\n";
     std::cout << "  1. Create a wav::Reader instance\n";
     std::cout << "  2. Open and parse a WAV file\n";
     std::cout << "  3. Read basic audio metadata\n";
     filename = findDataFile("wavs/loop-cue.wav");
-  }
-  else
-  {
+  } else {
     filename = argv[1];
   }
 
@@ -78,8 +70,7 @@ int main(int argc, char *argv[])
   // Step 2: Open the file
   // The open() method reads the RIFF header and fmt chunk
   // See wav-resources/WAVE File Format.html for the file format details
-  if (!reader.open())
-  {
+  if (!reader.open()) {
     std::cerr << "Error: Could not open WAV file: " << filename << "\n";
     std::cerr << "Make sure the file exists and is a valid WAVE format file.\n";
     return 1;
@@ -99,22 +90,18 @@ int main(int argc, char *argv[])
   std::cout << "  Bits/Sample:    " << reader.getBitsPerSample() << "\n";
 
   // Print cue points if available
-  const wav::CueChunk &cue = reader.getCueChunk();
-  if (cue.num_cue_points > 0)
-  {
+  const wav::CueChunk& cue = reader.getCueChunk();
+  if (cue.num_cue_points > 0) {
     std::cout << "\nNumber of Cue Points: " << cue.num_cue_points << "\n";
     std::cout << "-----------\n";
-    for (long i = 0; i < cue.num_cue_points; ++i)
-    {
-      const wav::CuePoint &point = cue.cue_points[i];
+    for (long i = 0; i < cue.num_cue_points; ++i) {
+      const wav::CuePoint& point = cue.cue_points[i];
       std::cout << "  Cue Point " << i + 1 << ":\n";
       std::cout << "    Identifier:    " << point.identifier << "\n";
       std::cout << "    Position:      " << point.position << "\n";
       std::cout << "    Sample Offset: " << point.sample_offset << "\n";
     }
-  }
-  else
-  {
+  } else {
     std::cout << "\nNo cue points found in this WAV file.\n";
   }
 
