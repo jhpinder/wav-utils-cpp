@@ -17,6 +17,14 @@ option(BUILD_EXAMPLES "Build example programs" ON)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
+    # Copy example data files (wavs/) to build output after examples are built
+    add_custom_target(copy_example_data ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/examples/wavs
+        ${CMAKE_CURRENT_BINARY_DIR}/examples/wavs
+        COMMENT "Copying example WAV files to build output"
+    )
+    add_dependencies(copy_example_data basic_usage)
 endif()
 
 # Optional: Build tests

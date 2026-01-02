@@ -7,7 +7,46 @@
  */
 
 #include <iostream>
+#include <filesystem>
 #include <wav/Reader.hpp>
+
+/**
+ * @brief Find a data file in common locations
+ *
+ * Searches for the file in:
+ *   1. Current working directory (e.g., "wavs/loop-cue.wav")
+ *   2. examples/ subdirectory (e.g., "examples/wavs/loop-cue.wav")
+ *   3. Just the root with examples prefix
+ *
+ * This allows the example to work when run from different directories
+ * (e.g., debug from build/examples/ or launch from repo root).
+ */
+static std::string findDataFile(const std::string &relative_path)
+{
+  namespace fs = std::filesystem;
+
+  // Try 1: Direct path (e.g., from build/examples/basic_usage)
+  if (fs::exists(relative_path))
+  {
+    return relative_path;
+  }
+
+  // Try 2: With examples/ prefix (e.g., from repo root)
+  std::string with_examples = "examples/" + relative_path;
+  if (fs::exists(with_examples))
+  {
+    return with_examples;
+  }
+
+  // Try 3: Assume we're in examples/ already (shouldn't reach here, but defensive)
+  if (fs::exists(relative_path))
+  {
+    return relative_path;
+  }
+
+  // File not found; return the original path and let Reader report the error
+  return relative_path;
+}
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +63,7 @@ int main(int argc, char *argv[])
     std::cout << "  1. Create a wav::Reader instance\n";
     std::cout << "  2. Open and parse a WAV file\n";
     std::cout << "  3. Read basic audio metadata\n";
-    filename = "../loop-cue.wav";
+    filename = findDataFile("wavs/loop-cue.wav");
   }
   else
   {
