@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.24)
 project(wav-utils-cpp VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -52,10 +52,15 @@ if(BUILD_EXAMPLES)
     add_dependencies(copy_example_data basic_usage)
 endif()
 
-# Optional: Build tests
-option(BUILD_TESTS "Build unit tests" OFF)
+# Enable testing globally
+enable_testing()
 
-if(BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
+# Create a minimal DartConfiguration.tcl in the build tree to avoid
+# spurious ctest warnings when running dashboard-style tests (e.g. `-T test`).
+# CTest will try to read ${CMAKE_BINARY_DIR}/DartConfiguration.tcl for
+# dashboard configuration; if it's missing it prints a harmless warning.
+# Writing a tiny file here suppresses that message.
+file(WRITE "${CMAKE_BINARY_DIR}/DartConfiguration.tcl" "set(CTEST_SITE \"\")\n")
+
+# Tests
+add_subdirectory(test)

@@ -14,7 +14,7 @@ Conventions and patterns to follow
 - Header-only library layout: put public headers under `include/` (e.g. `include/wav/Reader.hpp`). Use `#pragma once` and clear `wav` namespace.
 - Source files: avoid `.cpp` files unless implementing optional examples; if you must add them, include straightforward build/run instructions in the PR description.
 - Style: prefer explicit, tutorial-style comments. New public API should be concise and documented inline so readers can follow the tutorial flow.
-- Testing: add tests under `tests/` and prefer a single-file, header-only test framework (e.g., Catch2 single header) to keep the repo simple. When adding tests include an invocation example in the PR.
+- Testing: add tests under `test/` and prefer a single-file, header-only test framework (e.g., Catch2 single header) to keep the repo simple. When adding tests include an invocation example in the PR.
 
 Integration & resources
 - Use `wav-resources/WAVE File Format.html` as the primary parsed-format reference. When implementing parsing logic, cite the exact section or byte-range in code comments (for example: "See wav-resources/WAVE File Format.html — fmt chunk description").
@@ -22,7 +22,7 @@ Integration & resources
 
 Build / test guidance (examples — confirm before committing)
 - Quick single-file test compile (no CMake):
-  - `g++ -std=c++17 -Iinclude tests/test_example.cpp -o tests/test_example && ./tests/test_example`
+  - `g++ -std=c++17 -Iinclude test/test_example.cpp -o test/test_example && ./test/test_example`
 - If you add a CMakeLists.txt, include a minimal top-level example and a `README.md` change describing `cmake . && make` usage.
 
 When to ask the user
