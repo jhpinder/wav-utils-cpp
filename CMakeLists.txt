@@ -16,10 +16,25 @@ target_include_directories(wav INTERFACE
 file (GLOB_RECURSE ALL_SOURCE_FILES
     "include/*.hpp"
 )
-add_custom_target(format
+add_custom_target(
+    format
     COMMAND clang-format -i ${ALL_SOURCE_FILES}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Running clang-format on source files"
+)
+
+# cppcheck target
+add_custom_target(
+    cppcheck
+    COMMAND cppcheck
+            --enable=all
+            --inconclusive
+            --std=c++17
+            --quiet
+            --suppress-xml=suppressions.xml
+            ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running cppcheck on include files"
 )
 
 # Optional: Build examples

@@ -44,7 +44,7 @@ static std::string findDataFile(const std::string& relative_path) {
   return relative_path;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
   std::cout << "WAV Utils - Basic Usage Example\n";
   std::cout << "================================\n\n";
   std::string filename;
@@ -105,8 +105,6 @@ int main(int argc, char* argv[]) {
     std::cout << "\nNo cue points found in this WAV file.\n";
   }
 
-  // Calculate some derived values
-  double duration_seconds = 0.0; // TODO: Read data chunk to calculate duration
   std::cout << "\nNote: This basic example only reads the file header.\n";
   std::cout << "Future versions will read sample data and calculate duration.\n";
 
