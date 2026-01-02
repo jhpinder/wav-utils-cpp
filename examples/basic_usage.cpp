@@ -98,6 +98,26 @@ int main(int argc, char *argv[])
   std::cout << "  Sample Rate:    " << reader.getSampleRate() << " Hz\n";
   std::cout << "  Bits/Sample:    " << reader.getBitsPerSample() << "\n";
 
+  // Print cue points if available
+  const wav::CueChunk &cue = reader.getCueChunk();
+  if (cue.num_cue_points > 0)
+  {
+    std::cout << "\nNumber of Cue Points: " << cue.num_cue_points << "\n";
+    std::cout << "-----------\n";
+    for (long i = 0; i < cue.num_cue_points; ++i)
+    {
+      const wav::CuePoint &point = cue.cue_points[i];
+      std::cout << "  Cue Point " << i + 1 << ":\n";
+      std::cout << "    Identifier:    " << point.identifier << "\n";
+      std::cout << "    Position:      " << point.position << "\n";
+      std::cout << "    Sample Offset: " << point.sample_offset << "\n";
+    }
+  }
+  else
+  {
+    std::cout << "\nNo cue points found in this WAV file.\n";
+  }
+
   // Calculate some derived values
   double duration_seconds = 0.0; // TODO: Read data chunk to calculate duration
   std::cout << "\nNote: This basic example only reads the file header.\n";
