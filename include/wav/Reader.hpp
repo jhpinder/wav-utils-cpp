@@ -53,7 +53,6 @@ struct FmtChunk {
  * See wav-resources/WAVE File Format.html — fact chunk (for non-PCM formats)
  */
 struct FactChunk {
-  Id chunkId; // Should be "fact"
   chunkSize_t chunkSize = 0;
   uint32_t numSamplesPerChannel = 0;
 };
@@ -229,7 +228,7 @@ public:
     // Read and verify RIFF header (12 bytes)
     // See wav-resources/WAVE File Format.html — RIFF chunk descriptor
     char riffHeader[12];
-    file.read(riffHeader, 12);
+    file.read(riffHeader, sizeof(riffHeader));
 
     if (file.gcount() != 12) {
       return false;
@@ -253,7 +252,7 @@ public:
     while (file.good()) {
       // Read chunk ID (4 bytes)
       char chunkIdChars[4];
-      file.read(chunkIdChars, 4);
+      file.read(chunkIdChars, sizeof(chunkIdChars));
 
       if (file.gcount() != 4) {
         break; // End of file or read error
@@ -360,9 +359,13 @@ private:
    * @param file Input stream positioned right after the data chunk ID
    * See wav-resources/WAVE File Format.html — data chunk format
    * Validates audio format before reading samples.
+   *
+   * Note: chunkSize is the actual sample data bytes, not counting any pad byte.
+   * If chunkSize is odd, a pad byte follows the data (to maintain even alignment).
+   * Actual bytes to skip to next chunk = chunkSize + (chunkSize & 1)
    */
   bool readDataChunk(std::ifstream& file) {
-    file.read(reinterpret_cast<char*>(&data_.chunkSize), 4);
+    file.read(reinterpret_cast<char*>(&data_.chunkSize), sizeof(chunkSize_t));
 
     if (file.gcount() != 4) {
       return false;
@@ -377,7 +380,7 @@ private:
 
     // Read sample data into the appropriate typed container based on bitsPerSample
     if (data_.chunkSize > 0) {
-      data_.sampleDataInBytes.resize(data_.chunkSize / (fmt_.bitsPerSample / sizeof(uint8_t)));
+      data_.sampleDataInBytes.resize(data_.chunkSize);
       file.read(reinterpret_cast<char*>(data_.sampleDataInBytes.data()), data_.chunkSize);
 
       if (file.gcount() != static_cast<std::streamsize>(data_.chunkSize)) {
@@ -385,6 +388,11 @@ private:
                   << file.gcount() << "\n";
         return false;
       }
+    }
+
+    // Skip any pad byte if chunkSize is odd (maintains even alignment per RIFF spec)
+    if (data_.chunkSize & 1) {
+      file.seekg(1, std::ios::cur);
     }
 
     return true;
@@ -397,7 +405,7 @@ private:
    */
   bool readFactChunk(std::ifstream& file) {
     chunkSize_t chunkSize;
-    file.read(reinterpret_cast<char*>(&chunkSize), 4);
+    file.read(reinterpret_cast<char*>(&chunkSize), sizeof(chunkSize_t));
 
     if (file.gcount() != 4) {
       return false;
@@ -483,6 +491,8 @@ private:
   /**
    * @brief Skip unknown chunk
    * @param file Input stream positioned right after an unknown chunk ID
+   * Note: Accounts for pad byte if chunkSize is odd (maintains even alignment).
+   * Bytes to skip = chunkSize + (chunkSize & 1)
    */
   bool skipChunk(std::ifstream& file) {
     chunkSize_t chunkSize;
@@ -494,6 +504,11 @@ private:
 
     // Skip the chunk data
     file.seekg(chunkSize, std::ios::cur);
+
+    // Skip pad byte if chunkSize is odd (maintains even alignment per RIFF spec)
+    if (chunkSize & 1) {
+      file.seekg(1, std::ios::cur);
+    }
 
     return true;
   }

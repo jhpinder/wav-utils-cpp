@@ -49,20 +49,23 @@ TEST_CASE("test cue points") {
 }
 
 TEST_CASE("test data chunk") {
-  wav::Reader cueWavReader("resources/loop-cue.wav");
-  REQUIRE(cueWavReader.open());
+  wav::Reader dataReaderFloat("resources/loop-cue.wav");
+  wav::Reader dataReader24B("resources/24b96khz128samples.wav");
+  REQUIRE(dataReaderFloat.open());
+  REQUIRE(dataReader24B.open());
 
   // Verify data chunk
-  const wav::DataChunk& dataChunk = cueWavReader.getDataChunk();
-  CHECK_EQ(dataChunk.chunkSize, 1834020); // 458504 samples * 4 bytes/sample
-  CHECK_EQ(dataChunk.sampleDataInBytes.size(), 57313);
+  CHECK_EQ(dataReaderFloat.getDataChunk().sampleDataInBytes.size(), 1834020);
+  CHECK_EQ(dataReader24B.getDataChunk().sampleDataInBytes.size(), 837);
 }
 
 TEST_CASE("test fact chunk") {
-  wav::Reader cueWavReader("resources/loop-cue.wav");
-  REQUIRE(cueWavReader.open());
+  wav::Reader factWavReaderFloat("resources/loop-cue.wav");
+  wav::Reader factWavReader24B("resources/24b96khz128samples.wav");
+  REQUIRE(factWavReaderFloat.open());
+  REQUIRE(factWavReader24B.open());
 
   // Verify fact chunk
-  const wav::FactChunk& factChunk = cueWavReader.getFactChunk();
-  CHECK_EQ(factChunk.numSamplesPerChannel, 458505);
+  CHECK_EQ(factWavReaderFloat.getFactChunk().numSamplesPerChannel, 458505);
+  CHECK_EQ(factWavReader24B.getFactChunk().numSamplesPerChannel, 0);
 }
