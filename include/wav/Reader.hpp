@@ -39,12 +39,13 @@ enum class AudioFormat : uint16_t { PCM = 0x0001, IEEE_FLOAT = 0x0003 };
  * See wav-resources/WAVE File Format.html — fmt chunk format
  */
 struct FmtChunk {
+  chunkSize_t chunkSize = 0;                  // Size of the fmt chunk
   AudioFormat audioFormat = AudioFormat::PCM; // Audio format (1 = PCM)
-  uint16_t numChannels = 0;                   // Number of channels
-  uint32_t sampleRate = 0;                    // Sample rate (Hz)
-  uint32_t byteRate = 0;                      // Byte rate
-  uint16_t blockAlign = 0;                    // Block align
-  uint16_t bitsPerSample = 0;                 // Bits per sample
+  unsigned short numChannels = 0;             // Number of channels
+  unsigned long sampleRate = 0;               // Sample rate (Hz)
+  unsigned long avgBytesPerSec = 0;           // Byte rate
+  unsigned short blockAlign = 0;              // Block align
+  unsigned short bitsPerSample = 0;           // Bits per sample
 };
 
 /**
@@ -60,14 +61,11 @@ struct FactChunk {
 /**
  * @brief Data chunk information with sample data
  * See wav-resources/WAVE File Format.html — data chunk format
- * Stores raw sample data in little-endian format as read from file.
+ * Stores raw sample data as read from file in a byte vector
  */
 struct DataChunk {
-  chunkSize_t chunkSize = 0;                  // Size of data in bytes
-  std::streampos offset = 0;                  // File offset where data begins
-  AudioFormat audioFormat = AudioFormat::PCM; // Audio format (1=PCM, 3=IEEE float)
-  uint16_t bitsPerSample = 0;                 // Bits per sample (for format interpretation)
-  std::vector<uint8_t> samples;               // Raw sample data in file byte order
+  chunkSize_t chunkSize = 0;              // Size of data in bytes
+  std::vector<uint8_t> sampleDataInBytes; // This is NOT framed samples, just raw bytes
 };
 
 /**
@@ -312,6 +310,10 @@ public:
   uint32_t getSampleRate() const { return fmt_.sampleRate; }
   uint16_t getBitsPerSample() const { return fmt_.bitsPerSample; }
   AudioFormat getAudioFormat() const { return fmt_.audioFormat; }
+  /**
+   * @brief Get raw sample data as a byte vector exactly as read from the file
+   */
+  std::vector<uint8_t> getRawSampleData() const { return data_.sampleDataInBytes; }
 
   const FmtChunk& getFmtChunk() const { return fmt_; }
   const DataChunk& getDataChunk() const { return data_; }
@@ -337,7 +339,7 @@ private:
     file.read(reinterpret_cast<char*>(&fmt_.audioFormat), 2);
     file.read(reinterpret_cast<char*>(&fmt_.numChannels), 2);
     file.read(reinterpret_cast<char*>(&fmt_.sampleRate), 4);
-    file.read(reinterpret_cast<char*>(&fmt_.byteRate), 4);
+    file.read(reinterpret_cast<char*>(&fmt_.avgBytesPerSec), 4);
     file.read(reinterpret_cast<char*>(&fmt_.blockAlign), 2);
     file.read(reinterpret_cast<char*>(&fmt_.bitsPerSample), 2);
 
@@ -366,24 +368,17 @@ private:
       return false;
     }
 
-    // Store format info for sample interpretation
-    data_.audioFormat = fmt_.audioFormat;
-    data_.bitsPerSample = fmt_.bitsPerSample;
-
     // Validate audio format (only PCM and IEEE float supported for now)
-    if (data_.audioFormat != AudioFormat::PCM && data_.audioFormat != AudioFormat::IEEE_FLOAT) {
-      std::cerr << "Error: Unsupported audio format 0x" << std::hex << static_cast<uint16_t>(data_.audioFormat)
+    if (fmt_.audioFormat != AudioFormat::PCM && fmt_.audioFormat != AudioFormat::IEEE_FLOAT) {
+      std::cerr << "Error: Unsupported audio format 0x" << std::hex << static_cast<uint16_t>(fmt_.audioFormat)
                 << std::dec << " (only PCM 0x0001 and IEEE float 0x0003 supported)\n";
       return false;
     }
 
-    // Store current position (start of actual sample data)
-    data_.offset = file.tellg();
-
-    // Read sample data into vector
+    // Read sample data into the appropriate typed container based on bitsPerSample
     if (data_.chunkSize > 0) {
-      data_.samples.resize(data_.chunkSize / (data_.bitsPerSample / 8));
-      file.read(reinterpret_cast<char*>(data_.samples.data()), data_.chunkSize);
+      data_.sampleDataInBytes.resize(data_.chunkSize / (fmt_.bitsPerSample / sizeof(uint8_t)));
+      file.read(reinterpret_cast<char*>(data_.sampleDataInBytes.data()), data_.chunkSize);
 
       if (file.gcount() != static_cast<std::streamsize>(data_.chunkSize)) {
         std::cerr << "Error: Failed to read complete data chunk. Expected " << data_.chunkSize << " bytes, got "

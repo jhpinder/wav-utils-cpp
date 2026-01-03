@@ -55,7 +55,7 @@ TEST_CASE("test data chunk") {
   // Verify data chunk
   const wav::DataChunk& dataChunk = cueWavReader.getDataChunk();
   CHECK_EQ(dataChunk.chunkSize, 1834020); // 458504 samples * 4 bytes/sample
-  CHECK_EQ(dataChunk.samples.size(), 458505);
+  CHECK_EQ(dataChunk.sampleDataInBytes.size(), 57313);
 }
 
 TEST_CASE("test fact chunk") {
