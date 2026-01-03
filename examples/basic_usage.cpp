@@ -57,7 +57,7 @@ int main(int argc, const char* argv[]) {
     std::cout << "  1. Create a wav::Reader instance\n";
     std::cout << "  2. Open and parse a WAV file\n";
     std::cout << "  3. Read basic audio metadata\n";
-    filename = findDataFile("../test/resources/loop-cue.wav");
+    filename = findDataFile("../../test/resources/loop-cue.wav");
   } else {
     filename = argv[1];
   }

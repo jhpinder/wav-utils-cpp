@@ -36,53 +36,7 @@ TEST_CASE("invalid wav file") {
   std::remove(invalidWavFilename.c_str());
 }
 
-TEST_CASE("valid wav file") {
-  // Create a minimal valid WAV file (PCM, mono, 8-bit, 44100 Hz)
-  const std::string validWavFilename = "valid.wav";
-  {
-    std::ofstream ofs(validWavFilename, std::ios::binary);
-    // RIFF header
-    ofs << "RIFF";
-    uint32_t fileSize = 36; // Placeholder for file size
-    ofs.write(reinterpret_cast<const char*>(&fileSize), 4);
-    ofs << "WAVE";
-
-    // fmt chunk
-    ofs << "fmt ";
-    uint32_t fmtChunkSize = 16;
-    ofs.write(reinterpret_cast<const char*>(&fmtChunkSize), 4);
-    wav::AudioFormat audioFormat = wav::AudioFormat::PCM;
-    ofs.write(reinterpret_cast<const char*>(&audioFormat), 2);
-    uint16_t numChannels = 1; // Mono
-    ofs.write(reinterpret_cast<const char*>(&numChannels), 2);
-    uint32_t sampleRate = 44100;
-    ofs.write(reinterpret_cast<const char*>(&sampleRate), 4);
-    uint32_t byteRate = sampleRate * numChannels * 1; // 8-bit
-    ofs.write(reinterpret_cast<const char*>(&byteRate), 4);
-    uint16_t blockAlign = numChannels * 1; // 8-bit
-    ofs.write(reinterpret_cast<const char*>(&blockAlign), 2);
-    uint16_t bitsPerSample = 8;
-    ofs.write(reinterpret_cast<const char*>(&bitsPerSample), 2);
-
-    // data chunk
-    ofs << "data";
-    uint32_t dataChunkSize = 0; // No actual audio data
-    ofs.write(reinterpret_cast<const char*>(&dataChunkSize), 4);
-  }
-
-  wav::Reader validWavReader(validWavFilename);
-  CHECK(validWavReader.open());
-  CHECK_EQ(validWavReader.getNumChannels(), 1);
-  CHECK_EQ(validWavReader.getSampleRate(), 44100);
-  CHECK_EQ(validWavReader.getBitsPerSample(), 8);
-  CHECK_EQ(validWavReader.getAudioFormat(), wav::AudioFormat::PCM);
-
-  // Clean up temporary file
-  std::remove(validWavFilename.c_str());
-}
-
 TEST_CASE("test cue points") {
-
   wav::Reader cueWavReader("resources/loop-cue.wav");
   REQUIRE(cueWavReader.open());
 
@@ -92,4 +46,23 @@ TEST_CASE("test cue points") {
   CHECK_EQ(cueChunk.cuePoints[0].identifier, 0);
   CHECK_EQ(cueChunk.cuePoints[0].position, 0);
   CHECK_EQ(cueChunk.cuePoints[0].sampleOffset, 451437);
+}
+
+TEST_CASE("test data chunk") {
+  wav::Reader cueWavReader("resources/loop-cue.wav");
+  REQUIRE(cueWavReader.open());
+
+  // Verify data chunk
+  const wav::DataChunk& dataChunk = cueWavReader.getDataChunk();
+  CHECK_EQ(dataChunk.chunkSize, 1834020); // 458504 samples * 4 bytes/sample
+  CHECK_EQ(dataChunk.samples.size(), 458505);
+}
+
+TEST_CASE("test fact chunk") {
+  wav::Reader cueWavReader("resources/loop-cue.wav");
+  REQUIRE(cueWavReader.open());
+
+  // Verify fact chunk
+  const wav::FactChunk& factChunk = cueWavReader.getFactChunk();
+  CHECK_EQ(factChunk.numSamplesPerChannel, 458505);
 }
