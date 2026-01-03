@@ -2,13 +2,13 @@
  * @file basic_usage.cpp
  * @brief Tutorial example demonstrating basic WAV file reading
  *
- * This example shows how to use the wav::Reader class to open
+ * This example shows how to use the wav::WavFileUtils class to open
  * a WAV file and read its metadata.
  */
 
 #include <filesystem>
 #include <iostream>
-#include <wav/Reader.hpp>
+#include <wav/WavFileUtils.hpp>
 
 /**
  * @brief Find a data file in common locations
@@ -40,7 +40,7 @@ static std::string findDataFile(const std::string& relativePath) {
     return relativePath;
   }
 
-  // File not found; return the original path and let Reader report the error
+  // File not found; return the original path and let WavFileUtils report the error
   return relativePath;
 }
 
@@ -48,13 +48,13 @@ int main(int argc, const char* argv[]) {
   std::cout << "WAV Utils - Basic Usage Example\n";
   std::cout << "================================\n\n";
   std::string filename;
-  // The wav::Reader class provides a simple interface for reading WAV files
+  // The wav::WavFileUtils class provides a simple interface for reading WAV files
   // It's a header-only library, so no linking is required!
 
   if (argc < 2) {
     std::cout << "Usage: " << argv[0] << " <wav_file>\n";
     std::cout << "\nThis example demonstrates how to:\n";
-    std::cout << "  1. Create a wav::Reader instance\n";
+    std::cout << "  1. Create a wav::WavFileUtils instance\n";
     std::cout << "  2. Open and parse a WAV file\n";
     std::cout << "  3. Read basic audio metadata\n";
     // filename = findDataFile("../../test/resources/loop-cue.wav");
@@ -63,10 +63,10 @@ int main(int argc, const char* argv[]) {
     filename = argv[1];
   }
 
-  // Step 1: Create a Reader instance
+  // Step 1: Create a WavFileUtils instance
   // You can either pass the filename to the constructor or use the default
   // constructor and call open() later
-  wav::Reader reader(filename);
+  wav::WavFileUtils reader(filename);
 
   // Step 2: Open the file
   // The open() method reads the RIFF header and fmt chunk
@@ -80,7 +80,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "Successfully opened: " << filename << "\n\n";
 
   // Step 3: Read metadata
-  // The Reader class provides simple getters for all the fmt chunk data
+  // The WavFileUtils class provides simple getters for all the fmt chunk data
 
   std::cout << "Audio Format Details:\n";
   std::cout << "--------------------\n";

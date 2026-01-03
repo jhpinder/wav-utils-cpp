@@ -176,17 +176,17 @@ struct SamplerChunk {
  * Also see: riff-specs.pdf pages 56-65
  *
  * Usage example:
- *   wav::Reader reader("audio.wav");
+ *   wav::WavFileUtils reader("audio.wav");
  *   if (reader.open()) {
  *     std::cout << "Channels: " << reader.getNumChannels() << std::endl;
  *     std::cout << "Sample Rate: " << reader.getSampleRate() << std::endl;
  *   }
  */
-class Reader {
+class WavFileUtils {
 public:
-  Reader() : isOpen_(false) {}
+  WavFileUtils() : isOpen_(false) {}
 
-  explicit Reader(const std::string& filename) : filename_(filename), isOpen_(false) {}
+  explicit WavFileUtils(const std::string& filename) : filename_(filename), isOpen_(false) {}
 
   /**
    * @brief Open and parse a WAV file

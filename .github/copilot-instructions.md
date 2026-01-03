@@ -11,7 +11,7 @@ What you must know before editing
 - There is currently no build system or tests checked in. Do not add a new dependency or build system without asking the repo owner first.
 
 Conventions and patterns to follow
-- Header-only library layout: put public headers under `include/` (e.g. `include/wav/Reader.hpp`). Use `#pragma once` and clear `wav` namespace.
+- Header-only library layout: put public headers under `include/` (e.g. `include/wav/WavFileUtils.hpp`). Use `#pragma once` and clear `wav` namespace.
 - Source files: avoid `.cpp` files unless implementing optional examples; if you must add them, include straightforward build/run instructions in the PR description.
 - Style: prefer explicit, tutorial-style comments. New public API should be concise and documented inline so readers can follow the tutorial flow.
 - Testing: add tests under `test/` and prefer a single-file, header-only test framework (e.g., Catch2 single header) to keep the repo simple. When adding tests include an invocation example in the PR.
@@ -30,7 +30,7 @@ When to ask the user
 - If you need to introduce large scaffolding (CI, GitHub Actions), confirm desired CI matrix and test commands first.
 
 PR / commit guidance
-- Commit message: imperative, short scope — e.g. `Add wav::Reader header and basic fmt parsing`.
+- Commit message: imperative, short scope — e.g. `Add wav::WavFileUtils header and basic fmt parsing`.
 - PR description: include a short usage example, referenced test run, and the resource lines you used.
 
 Examples to follow in PRs

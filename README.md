@@ -14,9 +14,9 @@
 This is a header-only library. To use it in your project, simply include the headers:
 
 ```cpp
-#include <wav/Reader.hpp>
+#include <wav/WavFileUtils.hpp>
 
-wav::Reader reader("audio.wav");
+wav::WavFileUtils reader("audio.wav");
 if (reader.open()) {
     std::cout << "Channels: " << reader.getNumChannels() << std::endl;
 }

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-# Basic example showing how to use the wav::Reader class
+# Basic example showing how to use the wav::WavFileUtils class
 add_executable(basic_usage basic_usage.cpp)
 target_link_libraries(basic_usage PRIVATE wav)
 
