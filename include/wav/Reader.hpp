@@ -14,12 +14,12 @@ namespace wav {
  * See wav-resources/WAVE File Format.html — fmt chunk format
  */
 struct FmtChunk {
-  uint16_t audio_format = 0;    // Audio format (1 = PCM)
-  uint16_t num_channels = 0;    // Number of channels
-  uint32_t sample_rate = 0;     // Sample rate (Hz)
-  uint32_t byte_rate = 0;       // Byte rate
-  uint16_t block_align = 0;     // Block align
-  uint16_t bits_per_sample = 0; // Bits per sample
+  uint16_t audioFormat = 0;    // Audio format (1 = PCM)
+  uint16_t numChannels = 0;    // Number of channels
+  uint32_t sampleRate = 0;     // Sample rate (Hz)
+  uint32_t byteRate = 0;       // Byte rate
+  uint16_t blockAlign = 0;     // Block align
+  uint16_t bitsPerSample = 0; // Bits per sample
 };
 
 /**
@@ -30,8 +30,8 @@ struct FmtChunk {
 struct DataChunk {
   uint32_t size = 0;            // Size of data in bytes
   std::streampos offset = 0;    // File offset where data begins
-  uint16_t audio_format = 0;    // Audio format (1=PCM, 3=IEEE float)
-  uint16_t bits_per_sample = 0; // Bits per sample (for format interpretation)
+  uint16_t audioFormat = 0;    // Audio format (1=PCM, 3=IEEE float)
+  uint16_t bitsPerSample = 0; // Bits per sample (for format interpretation)
   std::vector<uint8_t> samples; // Raw sample data in file byte order
 };
 
@@ -42,10 +42,10 @@ struct DataChunk {
 struct CuePoint {
   uint32_t identifier = 0;
   uint32_t position = 0;
-  std::string data_chunk_id; // Should be "data"
-  uint32_t chunk_start = 0;
-  uint32_t block_start = 0;
-  uint32_t sample_offset = 0;
+  std::string fccChunk; // Should be "data"
+  uint32_t chunkStart = 0;
+  uint32_t blockStart = 0;
+  uint32_t sampleOffset = 0;
 };
 
 /**
@@ -54,8 +54,8 @@ struct CuePoint {
  */
 struct CueChunk {
   long chunkSize = 0;
-  long num_cue_points = 0;
-  std::vector<CuePoint> cue_points;
+  long numCuePoints = 0;
+  std::vector<CuePoint> cuePoints;
 };
 
 /**
@@ -76,9 +76,9 @@ struct CueChunk {
  */
 class Reader {
 public:
-  Reader() : is_open_(false) {}
+  Reader() : isOpen_(false) {}
 
-  explicit Reader(const std::string& filename) : filename_(filename), is_open_(false) {}
+  explicit Reader(const std::string& filename) : filename_(filename), isOpen_(false) {}
 
   /**
    * @brief Open and parse a WAV file
@@ -99,18 +99,18 @@ public:
     }
 
     std::filesystem::path p = filename_;
-    std::string abs_path;
+    std::string absPath;
     try {
       if (!p.is_absolute()) {
         p = std::filesystem::absolute(p);
       }
-      abs_path = p.string();
+      absPath = p.string();
     } catch (const std::filesystem::filesystem_error&) {
       // If current_path() / getcwd fails (e.g., CWD was removed), fall back
       // to the user-provided filename instead of throwing.
-      abs_path = filename_;
+      absPath = filename_;
     }
-    std::cout << "Opening file: " << abs_path << std::endl;
+    std::cout << "Opening file: " << absPath << std::endl;
 
     std::ifstream file(filename_, std::ios::binary);
     if (!file.is_open()) {
@@ -119,59 +119,59 @@ public:
 
     // Read and verify RIFF header (12 bytes)
     // See wav-resources/WAVE File Format.html — RIFF chunk descriptor
-    char riff_header[12];
-    file.read(riff_header, 12);
+    char riffHeader[12];
+    file.read(riffHeader, 12);
 
     if (file.gcount() != 12) {
       return false;
     }
 
     // Verify "RIFF" chunk ID
-    if (std::string(riff_header, 4) != "RIFF") {
+    if (std::string(riffHeader, 4) != "RIFF") {
       return false;
     }
 
     // Verify "WAVE" format
-    if (std::string(riff_header + 8, 4) != "WAVE") {
+    if (std::string(riffHeader + 8, 4) != "WAVE") {
       return false;
     }
 
     // Parse all chunks in the file
     // WAV files may contain various chunks in any order (JUNK, fmt, data, fact, LIST, etc.)
     // See wav-resources/WAVE File Format.html — chunk structure
-    bool found_fmt = false;
+    bool foundFmtChunk = false;
 
     while (file.good()) {
       // Read chunk ID (4 bytes)
-      char chunk_id[4];
-      file.read(chunk_id, 4);
+      char chunkId[4];
+      file.read(chunkId, 4);
 
       if (file.gcount() != 4) {
         break; // End of file or read error
       }
 
       // Use string comparisons for chunk dispatch (simpler and clearer)
-      std::string chunk_name(chunk_id, 4);
+      std::string chunkName(chunkId, 4);
 
-      if (chunk_name == "fmt ") {
+      if (chunkName == "fmt ") {
         if (!readFmtChunk(file)) {
           return false;
         }
-        found_fmt = true;
-      } else if (chunk_name == "data") {
+        foundFmtChunk = true;
+      } else if (chunkName == "data") {
         if (!readDataChunk(file)) {
           return false;
         }
-      } else if (chunk_name == "fact") {
+      } else if (chunkName == "fact") {
         if (!readFactChunk(file)) {
           return false;
         }
-      } else if (chunk_name == "cue ") {
+      } else if (chunkName == "cue ") {
         if (!readCueChunk(file)) {
           return false;
         }
-      } else if (chunk_name == "JUNK" || chunk_name == "LIST" || chunk_name == "INFO" || chunk_name == "smpl" ||
-                 chunk_name == "inst" || chunk_name == "bext" || chunk_name == "iXML") {
+      } else if (chunkName == "JUNK" || chunkName == "LIST" || chunkName == "INFO" || chunkName == "smpl" ||
+                 chunkName == "inst" || chunkName == "bext" || chunkName == "iXML") {
         // Known-but-not-actively-parsed chunks: skip their data
         if (!skipChunk(file)) {
           return false;
@@ -185,20 +185,20 @@ public:
     }
 
     // fmt chunk is required for valid WAV file
-    if (!found_fmt) {
+    if (!foundFmtChunk) {
       return false;
     }
 
-    is_open_ = true;
+    isOpen_ = true;
     return true;
   }
 
-  bool isOpen() const { return is_open_; }
+  bool isOpen() const { return isOpen_; }
 
-  uint16_t getNumChannels() const { return fmt_.num_channels; }
-  uint32_t getSampleRate() const { return fmt_.sample_rate; }
-  uint16_t getBitsPerSample() const { return fmt_.bits_per_sample; }
-  uint16_t getAudioFormat() const { return fmt_.audio_format; }
+  uint16_t getNumChannels() const { return fmt_.numChannels; }
+  uint32_t getSampleRate() const { return fmt_.sampleRate; }
+  uint16_t getBitsPerSample() const { return fmt_.bitsPerSample; }
+  uint16_t getAudioFormat() const { return fmt_.audioFormat; }
 
   const FmtChunk& getFmtChunk() const { return fmt_; }
   const DataChunk& getDataChunk() const { return data_; }
@@ -212,28 +212,28 @@ private:
    * Bytes are stored in little-endian format
    */
   bool readFmtChunk(std::ifstream& file) {
-    uint32_t chunk_size;
-    file.read(reinterpret_cast<char*>(&chunk_size), 4);
+    uint32_t chunkSize;
+    file.read(reinterpret_cast<char*>(&chunkSize), 4);
 
     if (file.gcount() != 4) {
       return false;
     }
 
     // Read fmt chunk fields
-    file.read(reinterpret_cast<char*>(&fmt_.audio_format), 2);
-    file.read(reinterpret_cast<char*>(&fmt_.num_channels), 2);
-    file.read(reinterpret_cast<char*>(&fmt_.sample_rate), 4);
-    file.read(reinterpret_cast<char*>(&fmt_.byte_rate), 4);
-    file.read(reinterpret_cast<char*>(&fmt_.block_align), 2);
-    file.read(reinterpret_cast<char*>(&fmt_.bits_per_sample), 2);
+    file.read(reinterpret_cast<char*>(&fmt_.audioFormat), 2);
+    file.read(reinterpret_cast<char*>(&fmt_.numChannels), 2);
+    file.read(reinterpret_cast<char*>(&fmt_.sampleRate), 4);
+    file.read(reinterpret_cast<char*>(&fmt_.byteRate), 4);
+    file.read(reinterpret_cast<char*>(&fmt_.blockAlign), 2);
+    file.read(reinterpret_cast<char*>(&fmt_.bitsPerSample), 2);
 
     if (file.gcount() != 2) {
       return false;
     }
 
     // Skip any extra fmt chunk data (e.g., extension for non-PCM formats)
-    if (chunk_size > 16) {
-      file.seekg(chunk_size - 16, std::ios::cur);
+    if (chunkSize > 16) {
+      file.seekg(chunkSize - 16, std::ios::cur);
     }
 
     return true;
@@ -253,12 +253,12 @@ private:
     }
 
     // Store format info for sample interpretation
-    data_.audio_format = fmt_.audio_format;
-    data_.bits_per_sample = fmt_.bits_per_sample;
+    data_.audioFormat = fmt_.audioFormat;
+    data_.bitsPerSample = fmt_.bitsPerSample;
 
     // Validate audio format (only PCM and IEEE float supported for now)
-    if (data_.audio_format != 0x0001 && data_.audio_format != 0x0003) {
-      std::cerr << "Error: Unsupported audio format 0x" << std::hex << data_.audio_format << std::dec
+    if (data_.audioFormat != 0x0001 && data_.audioFormat != 0x0003) {
+      std::cerr << "Error: Unsupported audio format 0x" << std::hex << data_.audioFormat << std::dec
                 << " (only PCM 0x0001 and IEEE float 0x0003 supported)\n";
       return false;
     }
@@ -287,15 +287,15 @@ private:
    * See wav-resources/WAVE File Format.html — fact chunk (for non-PCM formats)
    */
   bool readFactChunk(std::ifstream& file) {
-    uint32_t chunk_size;
-    file.read(reinterpret_cast<char*>(&chunk_size), 4);
+    uint32_t chunkSize;
+    file.read(reinterpret_cast<char*>(&chunkSize), 4);
 
     if (file.gcount() != 4) {
       return false;
     }
 
     // Skip fact chunk data (typically contains sample count for compressed formats)
-    file.seekg(chunk_size, std::ios::cur);
+    file.seekg(chunkSize, std::ios::cur);
 
     return true;
   }
@@ -306,23 +306,23 @@ private:
    * See wav-resources/WAVE File Format.html — cue chunk
    */
   bool readCueChunk(std::ifstream& file) {
-    uint32_t chunk_size;
-    file.read(reinterpret_cast<char*>(&chunk_size), 4);
+    uint32_t chunkSize;
+    file.read(reinterpret_cast<char*>(&chunkSize), 4);
 
     if (file.gcount() != 4) {
       return false;
     }
 
     // Read number of cue points
-    file.read(reinterpret_cast<char*>(&cue_.num_cue_points), 4);
+    file.read(reinterpret_cast<char*>(&cue_.numCuePoints), 4);
 
     // Read each cue point
-    for (long i = 0; i < cue_.num_cue_points; ++i) {
-      CuePoint cue_point;
-      if (!readCuePoint(file, cue_point)) {
+    for (long i = 0; i < cue_.numCuePoints; ++i) {
+      CuePoint cuePoint;
+      if (!readCuePoint(file, cuePoint)) {
         return false;
       }
-      cue_.cue_points.push_back(cue_point);
+      cue_.cuePoints.push_back(cuePoint);
     }
 
     return true;
@@ -331,24 +331,24 @@ private:
   /**
    * @brief Read individual cue point
    * @param file Input stream positioned right after a cue point ID
-   * @param cue_point CuePoint structure to fill
+   * @param cuePoint CuePoint structure to fill
    */
-  bool readCuePoint(std::ifstream& file, CuePoint& cue_point) {
-    file.read(reinterpret_cast<char*>(&cue_point.identifier), 4);
-    file.read(reinterpret_cast<char*>(&cue_point.position), 4);
+  bool readCuePoint(std::ifstream& file, CuePoint& cuePoint) {
+    file.read(reinterpret_cast<char*>(&cuePoint.identifier), 4);
+    file.read(reinterpret_cast<char*>(&cuePoint.position), 4);
 
-    char data_chunk_id[4];
-    file.read(data_chunk_id, 4);
-    cue_point.data_chunk_id = std::string(data_chunk_id, 4);
+    char fccChunk[4];
+    file.read(fccChunk, 4);
+    cuePoint.fccChunk = std::string(fccChunk, 4);
 
     // We do not currently support cue points for other chunks than "data"
-    if (cue_point.data_chunk_id != "data") {
+    if (cuePoint.fccChunk != "data") {
       return false;
     }
 
-    file.read(reinterpret_cast<char*>(&cue_point.chunk_start), 4);
-    file.read(reinterpret_cast<char*>(&cue_point.block_start), 4);
-    file.read(reinterpret_cast<char*>(&cue_point.sample_offset), 4);
+    file.read(reinterpret_cast<char*>(&cuePoint.chunkStart), 4);
+    file.read(reinterpret_cast<char*>(&cuePoint.blockStart), 4);
+    file.read(reinterpret_cast<char*>(&cuePoint.sampleOffset), 4);
 
     if (file.gcount() != 4) {
       return false;
@@ -362,21 +362,21 @@ private:
    * @param file Input stream positioned right after an unknown chunk ID
    */
   bool skipChunk(std::ifstream& file) {
-    uint32_t chunk_size;
-    file.read(reinterpret_cast<char*>(&chunk_size), 4);
+    uint32_t chunkSize;
+    file.read(reinterpret_cast<char*>(&chunkSize), 4);
 
     if (file.gcount() != 4) {
       return false;
     }
 
     // Skip the chunk data
-    file.seekg(chunk_size, std::ios::cur);
+    file.seekg(chunkSize, std::ios::cur);
 
     return true;
   }
 
   std::string filename_;
-  bool is_open_;
+  bool isOpen_;
 
   // Chunk data
   FmtChunk fmt_;

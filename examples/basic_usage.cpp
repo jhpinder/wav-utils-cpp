@@ -21,27 +21,27 @@
  * This allows the example to work when run from different directories
  * (e.g., debug from build/examples/ or launch from repo root).
  */
-static std::string findDataFile(const std::string& relative_path) {
+static std::string findDataFile(const std::string& relativePath) {
   namespace fs = std::filesystem;
 
   // Try 1: Direct path (e.g., from build/examples/basic_usage)
-  if (fs::exists(relative_path)) {
-    return relative_path;
+  if (fs::exists(relativePath)) {
+    return relativePath;
   }
 
   // Try 2: With examples/ prefix (e.g., from repo root)
-  std::string with_examples = "examples/" + relative_path;
-  if (fs::exists(with_examples)) {
-    return with_examples;
+  std::string withExamples = "examples/" + relativePath;
+  if (fs::exists(withExamples)) {
+    return withExamples;
   }
 
   // Try 3: Assume we're in examples/ already (shouldn't reach here, but defensive)
-  if (fs::exists(relative_path)) {
-    return relative_path;
+  if (fs::exists(relativePath)) {
+    return relativePath;
   }
 
   // File not found; return the original path and let Reader report the error
-  return relative_path;
+  return relativePath;
 }
 
 int main(int argc, const char* argv[]) {
@@ -91,15 +91,15 @@ int main(int argc, const char* argv[]) {
 
   // Print cue points if available
   const wav::CueChunk& cue = reader.getCueChunk();
-  if (cue.num_cue_points > 0) {
-    std::cout << "\nNumber of Cue Points: " << cue.num_cue_points << "\n";
+  if (cue.numCuePoints > 0) {
+    std::cout << "\nNumber of Cue Points: " << cue.numCuePoints << "\n";
     std::cout << "-----------\n";
-    for (long i = 0; i < cue.num_cue_points; ++i) {
-      const wav::CuePoint& point = cue.cue_points[i];
+    for (long i = 0; i < cue.numCuePoints; ++i) {
+      const wav::CuePoint& point = cue.cuePoints[i];
       std::cout << "  Cue Point " << i + 1 << ":\n";
       std::cout << "    Identifier:    " << point.identifier << "\n";
       std::cout << "    Position:      " << point.position << "\n";
-      std::cout << "    Sample Offset: " << point.sample_offset << "\n";
+      std::cout << "    Sample Offset: " << point.sampleOffset << "\n";
     }
   } else {
     std::cout << "\nNo cue points found in this WAV file.\n";
