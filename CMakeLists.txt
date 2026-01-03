@@ -37,6 +37,7 @@ add_custom_target(
             --std=c++17
             --quiet
             --suppress-xml=suppressions.xml
+            -ibuild
             ${CMAKE_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Running cppcheck on include files"

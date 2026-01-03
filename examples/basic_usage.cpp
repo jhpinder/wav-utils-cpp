@@ -84,7 +84,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "Audio Format Details:\n";
   std::cout << "--------------------\n";
   std::cout << "  Format:         " << static_cast<int>(reader.getAudioFormat())
-            << (static_cast<int>(reader.getAudioFormat()) == 1 ? " (PCM)" : " (Unknown)") << "\n";
+            << (static_cast<int>(reader.getAudioFormat()) == 1 ? " (PCM)" : " (IEEE_FLOAT)") << "\n";
   std::cout << "  Channels:       " << reader.getNumChannels() << "\n";
   std::cout << "  Sample Rate:    " << reader.getSampleRate() << " Hz\n";
   std::cout << "  Bits/Sample:    " << reader.getBitsPerSample() << "\n";
