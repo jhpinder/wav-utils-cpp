@@ -9,17 +9,23 @@
 #include <vector>
 
 namespace wav {
+
+/**
+ * @brief Audio format codes (see wav-resources/WAVE File Format.html — "fmt " chunk)
+ */
+enum class AudioFormat : uint16_t { PCM = 0x0001, IEEE_FLOAT = 0x0003 };
+
 /**
  * @brief Format chunk data structure
  * See wav-resources/WAVE File Format.html — fmt chunk format
  */
 struct FmtChunk {
-  uint16_t audioFormat = 0;   // Audio format (1 = PCM)
-  uint16_t numChannels = 0;   // Number of channels
-  uint32_t sampleRate = 0;    // Sample rate (Hz)
-  uint32_t byteRate = 0;      // Byte rate
-  uint16_t blockAlign = 0;    // Block align
-  uint16_t bitsPerSample = 0; // Bits per sample
+  AudioFormat audioFormat = AudioFormat::PCM; // Audio format (1 = PCM)
+  uint16_t numChannels = 0;                   // Number of channels
+  uint32_t sampleRate = 0;                    // Sample rate (Hz)
+  uint32_t byteRate = 0;                      // Byte rate
+  uint16_t blockAlign = 0;                    // Block align
+  uint16_t bitsPerSample = 0;                 // Bits per sample
 };
 
 /**
@@ -28,11 +34,11 @@ struct FmtChunk {
  * Stores raw sample data in little-endian format as read from file.
  */
 struct DataChunk {
-  uint32_t size = 0;            // Size of data in bytes
-  std::streampos offset = 0;    // File offset where data begins
-  uint16_t audioFormat = 0;     // Audio format (1=PCM, 3=IEEE float)
-  uint16_t bitsPerSample = 0;   // Bits per sample (for format interpretation)
-  std::vector<uint8_t> samples; // Raw sample data in file byte order
+  uint32_t size = 0;                          // Size of data in bytes
+  std::streampos offset = 0;                  // File offset where data begins
+  AudioFormat audioFormat = AudioFormat::PCM; // Audio format (1=PCM, 3=IEEE float)
+  uint16_t bitsPerSample = 0;                 // Bits per sample (for format interpretation)
+  std::vector<uint8_t> samples;               // Raw sample data in file byte order
 };
 
 /**
@@ -198,7 +204,7 @@ public:
   uint16_t getNumChannels() const { return fmt_.numChannels; }
   uint32_t getSampleRate() const { return fmt_.sampleRate; }
   uint16_t getBitsPerSample() const { return fmt_.bitsPerSample; }
-  uint16_t getAudioFormat() const { return fmt_.audioFormat; }
+  AudioFormat getAudioFormat() const { return fmt_.audioFormat; }
 
   const FmtChunk& getFmtChunk() const { return fmt_; }
   const DataChunk& getDataChunk() const { return data_; }
@@ -257,9 +263,9 @@ private:
     data_.bitsPerSample = fmt_.bitsPerSample;
 
     // Validate audio format (only PCM and IEEE float supported for now)
-    if (data_.audioFormat != 0x0001 && data_.audioFormat != 0x0003) {
-      std::cerr << "Error: Unsupported audio format 0x" << std::hex << data_.audioFormat << std::dec
-                << " (only PCM 0x0001 and IEEE float 0x0003 supported)\n";
+    if (data_.audioFormat != AudioFormat::PCM && data_.audioFormat != AudioFormat::IEEE_FLOAT) {
+      std::cerr << "Error: Unsupported audio format 0x" << std::hex << static_cast<uint16_t>(data_.audioFormat)
+                << std::dec << " (only PCM 0x0001 and IEEE float 0x0003 supported)\n";
       return false;
     }
 

@@ -2,6 +2,20 @@
 #include "doctest/doctest.h"
 #include <wav/Reader.hpp>
 
+TEST_CASE("valid file") {
+  wav::Reader cueWavReader("resources/loop-cue.wav");
+  REQUIRE(cueWavReader.open());
+  CHECK_EQ(cueWavReader.getNumChannels(), 1);
+  CHECK_EQ(cueWavReader.getSampleRate(), 96000);
+  CHECK_EQ(cueWavReader.getBitsPerSample(), 32);
+  CHECK_EQ(cueWavReader.getAudioFormat(), wav::AudioFormat::IEEE_FLOAT);
+}
+
+TEST_CASE("empty filename") {
+  wav::Reader emptyFilenameReader;
+  CHECK_FALSE(emptyFilenameReader.open());
+}
+
 TEST_CASE("file does not exist") {
   wav::Reader nonExistentFileReader("non_existent_file.wav");
   CHECK_FALSE(nonExistentFileReader.open());
@@ -37,7 +51,7 @@ TEST_CASE("valid wav file") {
     ofs << "fmt ";
     uint32_t fmtChunkSize = 16;
     ofs.write(reinterpret_cast<const char*>(&fmtChunkSize), 4);
-    uint16_t audioFormat = 1; // PCM
+    wav::AudioFormat audioFormat = wav::AudioFormat::PCM;
     ofs.write(reinterpret_cast<const char*>(&audioFormat), 2);
     uint16_t numChannels = 1; // Mono
     ofs.write(reinterpret_cast<const char*>(&numChannels), 2);
@@ -61,8 +75,21 @@ TEST_CASE("valid wav file") {
   CHECK_EQ(validWavReader.getNumChannels(), 1);
   CHECK_EQ(validWavReader.getSampleRate(), 44100);
   CHECK_EQ(validWavReader.getBitsPerSample(), 8);
-  CHECK_EQ(validWavReader.getAudioFormat(), 1); // PCM
+  CHECK_EQ(validWavReader.getAudioFormat(), wav::AudioFormat::PCM);
 
   // Clean up temporary file
   std::remove(validWavFilename.c_str());
+}
+
+TEST_CASE("test cue points") {
+
+  wav::Reader cueWavReader("resources/loop-cue.wav");
+  REQUIRE(cueWavReader.open());
+
+  // Verify cue points
+  const wav::CueChunk& cueChunk = cueWavReader.getCueChunk();
+  REQUIRE_EQ(cueChunk.numCuePoints, 1);
+  CHECK_EQ(cueChunk.cuePoints[0].identifier, 0);
+  CHECK_EQ(cueChunk.cuePoints[0].position, 0);
+  CHECK_EQ(cueChunk.cuePoints[0].sampleOffset, 451437);
 }

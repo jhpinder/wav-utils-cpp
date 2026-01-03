@@ -57,7 +57,7 @@ int main(int argc, const char* argv[]) {
     std::cout << "  1. Create a wav::Reader instance\n";
     std::cout << "  2. Open and parse a WAV file\n";
     std::cout << "  3. Read basic audio metadata\n";
-    filename = findDataFile("wavs/loop-cue.wav");
+    filename = findDataFile("../test/resources/loop-cue.wav");
   } else {
     filename = argv[1];
   }
@@ -83,8 +83,8 @@ int main(int argc, const char* argv[]) {
 
   std::cout << "Audio Format Details:\n";
   std::cout << "--------------------\n";
-  std::cout << "  Format:         " << reader.getAudioFormat()
-            << (reader.getAudioFormat() == 1 ? " (PCM)" : " (Unknown)") << "\n";
+  std::cout << "  Format:         " << static_cast<int>(reader.getAudioFormat())
+            << (static_cast<int>(reader.getAudioFormat()) == 1 ? " (PCM)" : " (Unknown)") << "\n";
   std::cout << "  Channels:       " << reader.getNumChannels() << "\n";
   std::cout << "  Sample Rate:    " << reader.getSampleRate() << " Hz\n";
   std::cout << "  Bits/Sample:    " << reader.getBitsPerSample() << "\n";
