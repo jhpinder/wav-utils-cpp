@@ -14,11 +14,11 @@ namespace wav {
  * See wav-resources/WAVE File Format.html — fmt chunk format
  */
 struct FmtChunk {
-  uint16_t audioFormat = 0;    // Audio format (1 = PCM)
-  uint16_t numChannels = 0;    // Number of channels
-  uint32_t sampleRate = 0;     // Sample rate (Hz)
-  uint32_t byteRate = 0;       // Byte rate
-  uint16_t blockAlign = 0;     // Block align
+  uint16_t audioFormat = 0;   // Audio format (1 = PCM)
+  uint16_t numChannels = 0;   // Number of channels
+  uint32_t sampleRate = 0;    // Sample rate (Hz)
+  uint32_t byteRate = 0;      // Byte rate
+  uint16_t blockAlign = 0;    // Block align
   uint16_t bitsPerSample = 0; // Bits per sample
 };
 
@@ -30,8 +30,8 @@ struct FmtChunk {
 struct DataChunk {
   uint32_t size = 0;            // Size of data in bytes
   std::streampos offset = 0;    // File offset where data begins
-  uint16_t audioFormat = 0;    // Audio format (1=PCM, 3=IEEE float)
-  uint16_t bitsPerSample = 0; // Bits per sample (for format interpretation)
+  uint16_t audioFormat = 0;     // Audio format (1=PCM, 3=IEEE float)
+  uint16_t bitsPerSample = 0;   // Bits per sample (for format interpretation)
   std::vector<uint8_t> samples; // Raw sample data in file byte order
 };
 

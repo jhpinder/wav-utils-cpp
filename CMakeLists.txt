@@ -13,9 +13,14 @@ target_include_directories(wav INTERFACE
 )
 
 # Format target
-file (GLOB_RECURSE ALL_SOURCE_FILES
-    "include/*.hpp"
+file(GLOB_RECURSE ALL_SOURCE_FILES
+    include/*.hpp
 )
+
+file(GLOB_RECURSE ALL_TEST_FILES
+    test/*.cpp
+)
+
 add_custom_target(
     format
     COMMAND clang-format -i ${ALL_SOURCE_FILES}
